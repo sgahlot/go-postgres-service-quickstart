@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  go-postgres-quickstart:
+    build:
+      context: .
+      dockerfile: resources/docker/go/Dockerfile
+    image: quay.io/${QUAY_USER_OR_ORG}/${IMAGE_NAME_WITHOUT_TAG}:${IMAGE_TAG}
+    restart: always
+    environment:
+      DB_NAME: ${DB_NAME}
+      DB_URL: ${DB_URL}
+      SERVICE_BINDING_ROOT: ${SERVICE_BINDING_ROOT}
+    container_name: ${CONTAINER_NAME}
+    ports:
+      - "9091:8080"
+    depends_on:
+      - postgresql
+    volumes:
+      - ./test-bindings/bindings:/bindings
+
+  postgresql:
+    image: postgres
+    restart: always
+    env_file:
+      - resources/docker/postgres/.env
+    container_name: postgres-test-db
+    ports:
+      - "5432:5432"
+    volumes:
+      # 1st one is for storing data outside the container. 2nd is for initializing the DB
+      - /tmp/data/postgres:/data/db
+      - ./resources/docker/postgres/db-init/:/docker-entrypoint-initdb.d

@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: List
+items:
+  - kind: Deployment
+    apiVersion: apps/v1
+    metadata:
+      name: go-postgres-quickstart
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          name: go-postgres-quickstart
+      template:
+        metadata:
+          labels:
+            name: go-postgres-quickstart
+        spec:
+          containers:
+            - name: go-postgres-quickstart
+              image: quay.io/sgahlot/go-postgres-quickstart:0.0.1-SNAPSHOT
+              imagePullPolicy: Always
+              ports:
+                - containerPort: 8080
+                  protocol: TCP
+  - kind: Service
+    apiVersion: v1
+    metadata:
+      name: go-postgres-quickstart
+      labels:
+        name: go-postgres-quickstart
+    spec:
+      ports:
+        - port: 8080
+          protocol: TCP
+          targetPort: 8080
+      selector:
+        name: go-postgres-quickstart
+  - kind: Route
+    apiVersion: route.openshift.io/v1
+    metadata:
+      name: go-postgres-quickstart
+      labels:
+        name: go-postgres-quickstart
+    spec:
+      port:
+        targetPort: 8080
+      to:
+        kind: Service
+        name: go-postgres-quickstart

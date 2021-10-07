@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  postgres_db:
+    image: postgres
+    restart: always
+    env_file:
+      - .env
+    container_name: postgres-test-db
+    ports:
+      - "5432:5432"
+    volumes:
+      # 1st one is for storing data outside the container. 2nd is for initializing the DB
+      - /tmp/data/postgres:/data/db
+      - ./db-init/:/docker-entrypoint-initdb.d
