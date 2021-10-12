@@ -1,9 +1,1 @@
-p.475ow3natngrhaffymv7fbxmha.db.postgresbridge.com
-
-p.oapyk5a3q5a5bbwuw5i7ilwfye.db.postgresbridge.com
-  instanceID: 475ow3natngrhaffymv7fbxmha
-
- connectionInfoRef:
-    name: crunchy-bridge-db-conn-cm-9brnh
-  credentialsRef:
-    name: crunchy-bridge-db-credentials-vbz8p
+localhost

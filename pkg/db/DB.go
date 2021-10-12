@@ -17,10 +17,6 @@ var (
 	postgresSqlClient *sql.DB
 )
 
-func init() {
-	postgresSqlClient = createPostgresSqlConnection()
-}
-
 func getPostgresSqlConnectionStringForNonBindingsRun() string {
 	return GetEnvOrDefault(DB_URL_KEY, DEFAULT_DB_URL)
 }
@@ -60,11 +56,14 @@ func createPostgresSqlConnection() *sql.DB {
 }
 
 func checkAndRefreshConnection() {
-	err := postgresSqlClient.Ping()
-	if err != nil {
+	if postgresSqlClient == nil {
+		// Try to get the connection as this could be the first time we're trying to connect
+		postgresSqlClient = createPostgresSqlConnection()
+	} else if err := postgresSqlClient.Ping(); err != nil {
 		// Try to get the connection again as we might be disconnected
 		postgresSqlClient = createPostgresSqlConnection()
 	}
+
 }
 
 func GetPostgreSqlConnection() *sql.DB {
