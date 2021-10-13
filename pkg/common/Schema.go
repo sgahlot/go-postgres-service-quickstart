@@ -1,4 +1,4 @@
-package db
+package common
 
 import (
 	"context"
@@ -10,8 +10,6 @@ type Fruit struct {
 	Description string `json:"description"`
 	Name        string `json:"name"`
 }
-
-type FruitRequest Fruit
 
 func (fruit *Fruit) String() string {
 	return fmt.Sprintf("id=%s, name=%s, description=%s", fruit.Id, fruit.Name, fruit.Description)
@@ -25,14 +23,10 @@ type FruitResponse struct {
 }
 
 type Service interface {
-	InsertFruit(req *FruitRequest) FruitResponse
-	GetFruits(req *FruitRequest) FruitResponse
-	GetFruit(req *FruitRequest) Fruit
-	DeleteFruits(req *FruitRequest) FruitResponse
-}
-
-type FruitService struct {
-	fruit *Fruit
+	InsertFruit(req *Fruit) FruitResponse
+	GetFruits(req *Fruit) FruitResponse
+	GetFruit(req *Fruit) Fruit
+	DeleteFruits(req *Fruit) FruitResponse
 }
 
 func GetContext() context.Context {

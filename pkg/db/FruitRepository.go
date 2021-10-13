@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/sgahlot/go-postgres-service-quickstart/pkg/common"
 	"log"
 	"strings"
 )
@@ -11,7 +12,11 @@ const (
 	ALL_ROWS = "ALL"
 )
 
-func (req *FruitRequest) GetDbSearchQuery() string {
+type FruitService struct {
+	fruit *common.Fruit
+}
+
+func (receiver *FruitService) GetDbSearchQuery(req *common.Fruit) string {
 	var query []string
 
 	if req.Id != "" {
@@ -27,12 +32,12 @@ func (req *FruitRequest) GetDbSearchQuery() string {
 	return strings.Join(query, " OR ")
 }
 
-func (receiver *FruitService) InsertFruit(fruit *FruitRequest) FruitResponse {
+func (receiver *FruitService) InsertFruit(fruit *common.Fruit) common.FruitResponse {
 	log.Printf("Inserting Fruit (%+v)\n", fruit)
 
 	db := GetPostgreSqlConnection()
 
-	dbContext := GetContext()
+	dbContext := common.GetContext()
 
 	fruit.Id = uuid.NewString() // generate the ID ourselves
 
@@ -40,43 +45,43 @@ func (receiver *FruitService) InsertFruit(fruit *FruitRequest) FruitResponse {
 		dbContext,
 		"INSERT INTO Fruit(id, name, description) VALUES($1, $2, $3)",
 		fruit.Id, fruit.Name, fruit.Description)
-	CheckErrorWithPanic(err, fmt.Sprintf("error while inserting Fruit. Data: %+v", fruit))
+	common.CheckErrorWithPanic(err, fmt.Sprintf("error while inserting Fruit. Data: %+v", fruit))
 
 	fruitId := fruit.Id
 	log.Printf("Inserted Fruit (id=%s, %+v)\n", fruitId, fruit)
 
-	return FruitResponse{
+	return common.FruitResponse{
 		Id:      fruitId,
-		Message: RESPOSNE_SUCCESS,
+		Message: common.RESPOSNE_SUCCESS,
 		Err:     nil,
 	}
 }
 
-func (receiver *FruitService) DeleteFruits(req *FruitRequest) FruitResponse {
+func (receiver *FruitService) DeleteFruits(req *common.Fruit) common.FruitResponse {
 	log.Printf("Deleting Fruit(s) (%+v)\n", req)
 
-	query := req.GetDbSearchQuery()
+	query := receiver.GetDbSearchQuery(req)
 
 	db := GetPostgreSqlConnection()
 
-	dbContext := GetContext()
+	dbContext := common.GetContext()
 	_, err := db.ExecContext(
 		dbContext,
 		"DELETE Fruit WHERE "+query)
-	CheckErrorWithPanic(err, fmt.Sprintf("error while deleting Fruit (%+v)", req))
+	common.CheckErrorWithPanic(err, fmt.Sprintf("error while deleting Fruit (%+v)", req))
 
 	log.Printf("Deleted Fruit(s) matching (%+v)\n", req)
 
-	return FruitResponse{
-		Message: RESPOSNE_SUCCESS + " in deleting fruits matching criteria",
+	return common.FruitResponse{
+		Message: common.RESPOSNE_SUCCESS + " in deleting fruits matching criteria",
 		Err:     nil,
 	}
 }
 
-func (receiver *FruitService) GetFruit(req *FruitRequest) Fruit {
+func (receiver *FruitService) GetFruit(req *common.Fruit) common.Fruit {
 	fruitResponse := receiver.GetFruits(req)
 
-	var fruit Fruit
+	var fruit common.Fruit
 	if fruitResponse.Fruits != nil && len(fruitResponse.Fruits) > 0 {
 		fruit = fruitResponse.Fruits[0]
 	}
@@ -84,7 +89,7 @@ func (receiver *FruitService) GetFruit(req *FruitRequest) Fruit {
 	return fruit
 }
 
-func (receiver *FruitService) GetFruits(req *FruitRequest) FruitResponse {
+func (receiver *FruitService) GetFruits(req *common.Fruit) common.FruitResponse {
 	log.Printf("Retrieving Fruits (+%v)\n", req)
 
 	selectQuery := receiver.getSelectQuery(req)
@@ -92,14 +97,14 @@ func (receiver *FruitService) GetFruits(req *FruitRequest) FruitResponse {
 	db := GetPostgreSqlConnection()
 
 	rows, err := db.Query(selectQuery)
-	CheckErrorWithPanic(err, fmt.Sprintf("error while retrieving Fruits (+%v)", req))
+	common.CheckErrorWithPanic(err, fmt.Sprintf("error while retrieving Fruits (+%v)", req))
 	defer rows.Close()
 
-	var fruits []Fruit
+	var fruits []common.Fruit
 	for rows.Next() {
-		fruit := Fruit{}
+		fruit := common.Fruit{}
 		err := rows.Scan(&fruit.Id, &fruit.Name, &fruit.Description)
-		CheckErrorWithPanic(err, "error while trying to decode Fruit")
+		common.CheckErrorWithPanic(err, "error while trying to decode Fruit")
 		fruits = append(fruits, fruit)
 	}
 
@@ -111,7 +116,7 @@ func (receiver *FruitService) GetFruits(req *FruitRequest) FruitResponse {
 		fruits = nil
 	}
 
-	response := FruitResponse{
+	response := common.FruitResponse{
 		Message: message,
 		Fruits:  fruits,
 	}
@@ -119,10 +124,10 @@ func (receiver *FruitService) GetFruits(req *FruitRequest) FruitResponse {
 	return response
 }
 
-func (receiver *FruitService) getSelectQuery(req *FruitRequest) string {
+func (receiver *FruitService) getSelectQuery(req *common.Fruit) string {
 	var queryStr = "SELECT id, name, description FROM fruit"
 	if req.Name != ALL_ROWS {
-		query := req.GetDbSearchQuery()
+		query := receiver.GetDbSearchQuery(req)
 		queryStr += " WHERE " + query
 	}
 

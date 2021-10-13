@@ -1,4 +1,4 @@
-package db
+package common
 
 import (
 	"log"
@@ -6,7 +6,6 @@ import (
 )
 
 const (
-	DB_NAME_KEY      = "DB_NAME"
 	DB_URL_KEY       = "DB_URL"
 	RESPOSNE_SUCCESS = "Success"
 

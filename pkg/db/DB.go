@@ -4,13 +4,13 @@ import (
 	"database/sql"
 	_ "github.com/lib/pq"
 	"github.com/myeung18/service-binding-client/pkg/binding/convert"
+	"github.com/sgahlot/go-postgres-service-quickstart/pkg/common"
 	"log"
 )
 
 const (
-	DRIVER_NAME     = "postgres"
-	DEFAULT_DB_NAME = "test"
-	DEFAULT_DB_URL  = "host=localhost port=5432 user=postgres password=password dbname=test sslmode=disable"
+	DRIVER_NAME    = "postgres"
+	DEFAULT_DB_URL = "host=localhost port=5432 user=postgres password=password dbname=test sslmode=disable"
 )
 
 var (
@@ -18,18 +18,18 @@ var (
 )
 
 func getPostgresSqlConnectionStringForNonBindingsRun() string {
-	return GetEnvOrDefault(DB_URL_KEY, DEFAULT_DB_URL)
+	return common.GetEnvOrDefault(common.DB_URL_KEY, DEFAULT_DB_URL)
 }
 
 func getPostgresSqlConnectionStringForBindingsRun() string {
 	sqlConnectionStr, err := convert.GetPostgreSQLConnectionString()
-	CheckErrorWithPanic(err, "while trying to get PostgresSQL connection string from Bindings")
+	common.CheckErrorWithPanic(err, "while trying to get PostgresSQL connection string from Bindings")
 
 	return sqlConnectionStr
 }
 
 func getPostgresSqlConnectionString() string {
-	bindingsDir := GetEnvOrDefault("SERVICE_BINDING_ROOT", "")
+	bindingsDir := common.GetEnvOrDefault("SERVICE_BINDING_ROOT", "")
 	var sqlConnectionStr string
 	if bindingsDir == "" {
 		sqlConnectionStr = getPostgresSqlConnectionStringForNonBindingsRun()
@@ -44,13 +44,13 @@ func getPostgresSqlConnectionString() string {
 
 func createPostgresSqlConnection() *sql.DB {
 	db, err := sql.Open(DRIVER_NAME, getPostgresSqlConnectionString())
-	CheckErrorWithPanic(err, "while connecting to PostgresSQL")
+	common.CheckErrorWithPanic(err, "while connecting to PostgresSQL")
 
 	db.SetMaxOpenConns(5)
 	// defer db.Close()
 
 	err = db.Ping()
-	CheckErrorWithPanic(err, "while pinging PostgreSQL")
+	common.CheckErrorWithPanic(err, "while pinging PostgreSQL")
 
 	return db
 }

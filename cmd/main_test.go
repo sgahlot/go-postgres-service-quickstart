@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	mocks "github.com/sgahlot/go-postgres-service-quickstart/mocks/pkg/db"
+	mocks "github.com/sgahlot/go-postgres-service-quickstart/mocks/pkg/common"
+	"github.com/sgahlot/go-postgres-service-quickstart/pkg/common"
 	"github.com/sgahlot/go-postgres-service-quickstart/pkg/db"
 	"io/ioutil"
 
@@ -82,21 +83,21 @@ func TestRetrieveFruits(t *testing.T) {
 	t.Run("Non-existent fruit", func(t *testing.T) {
 		RESPONSE_MESSAGE_NO_FRUITS_FOUND := "No fruits found for given query"
 
-		fruitRequest := db.FruitRequest{Name: "BLAH"}
+		fruitRequest := common.Fruit{Name: "BLAH"}
 
 		responseJson := `{
             "message": "%s"
         }`
 		responseJson = fmt.Sprintf(responseJson, RESPONSE_MESSAGE_NO_FRUITS_FOUND)
 
-		var responseAsObj db.FruitResponse
+		var responseAsObj common.FruitResponse
 		json.Unmarshal([]byte(responseJson), &responseAsObj)
 		mockService.On("GetFruits", &fruitRequest).Return(responseAsObj)
 
 		// fmt.Printf("Expected response: %+v\n", responseAsObj)
 
 		response, err := invokeApiAndVerifyResponse(t, router, nil, "GET", "/api/v1/fruits?name=BLAH", http.StatusOK)
-		fruitResponse := response.(db.FruitResponse)
+		fruitResponse := response.(common.FruitResponse)
 
 		assert.Nil(t, err)
 		assert.Nil(t, fruitResponse.Err)
@@ -109,20 +110,20 @@ func TestRetrieveAllFruits(t *testing.T) {
 	mockService := new(mocks.Service)
 	router := makeRoute(mockService)
 
-	fruitRequest := db.FruitRequest{Name: db.ALL_ROWS}
+	fruitRequest := common.Fruit{Name: db.ALL_ROWS}
 
 	RESPONSE_MESSAGE := "Found 4 fruits"
 
 	responseJson := getFruitResponseJson("["+INITIAL_4_FRUITS+"]", RESPONSE_MESSAGE)
 
-	var responseAsObj db.FruitResponse
+	var responseAsObj common.FruitResponse
 	json.Unmarshal([]byte(responseJson), &responseAsObj)
 	mockService.On("GetFruits", &fruitRequest).Return(responseAsObj)
 
 	// fmt.Printf("Expected response: %+v\n", responseAsObj)
 
 	response, err := invokeApiAndVerifyResponse(t, router, nil, "GET", "/api/v1/fruits?name="+db.ALL_ROWS, http.StatusOK)
-	fruitResponse := response.(db.FruitResponse)
+	fruitResponse := response.(common.FruitResponse)
 
 	assert.Nil(t, err)
 	assert.Nil(t, fruitResponse.Err)
@@ -134,7 +135,7 @@ func TestInsertFruit(t *testing.T) {
 	mockService := new(mocks.Service)
 	router := makeRoute(mockService)
 
-	fruitRequest := db.FruitRequest{Description: "Full of fibre and Vitamin C", Name: "Pear"}
+	fruitRequest := common.Fruit{Description: "Full of fibre and Vitamin C", Name: "Pear"}
 	responseAsObj := getFruitResponseAsObject(INSERT_FRUIT_RESPONSE)
 	mockService.On("InsertFruit", &fruitRequest).Return(responseAsObj)
 	response, err := invokeApiAndVerifyResponse(t, router,
@@ -149,13 +150,13 @@ func TestInsertFruit(t *testing.T) {
 
 	responseAsObj = getFruitResponseAsObject(responseJson)
 
-	fruitRequest = db.FruitRequest{Name: db.ALL_ROWS}
+	fruitRequest = common.Fruit{Name: db.ALL_ROWS}
 	mockService.On("GetFruits", &fruitRequest).Return(responseAsObj)
 
 	// fmt.Printf("Expected response: %+v\n", responseAsObj)
 
 	response, err = invokeApiAndVerifyResponse(t, router, nil, "GET", "/api/v1/fruits?name="+db.ALL_ROWS, http.StatusOK)
-	fruitResponse := response.(db.FruitResponse)
+	fruitResponse := response.(common.FruitResponse)
 
 	assert.Nil(t, err)
 	assert.Nil(t, fruitResponse.Err)
@@ -163,8 +164,8 @@ func TestInsertFruit(t *testing.T) {
 	assert.Equal(t, responseAsObj.Fruits, fruitResponse.Fruits)
 }
 
-func getFruitResponseAsObject(responseJson string) db.FruitResponse {
-	var responseAsObj db.FruitResponse
+func getFruitResponseAsObject(responseJson string) common.FruitResponse {
+	var responseAsObj common.FruitResponse
 	json.Unmarshal([]byte(responseJson), &responseAsObj)
 
 	return responseAsObj
@@ -184,7 +185,7 @@ func invokeApiAndVerifyResponse(t *testing.T, router http.Handler, body interfac
 	writer := performRequest(router, body, method, path)
 	assert.Equal(t, httpStatus, writer.Code)
 
-	var response db.FruitResponse
+	var response common.FruitResponse
 	err := json.Unmarshal([]byte(writer.Body.String()), &response)
 
 	fmt.Printf("Error: %v\n", err)

@@ -46,7 +46,7 @@ Use following commands to build and run the app in Docker container:
 * Build Docker image
   * `make build_image`
 * Run the app in container (will build the image if not already built)
-  * _Change the `test-bindings/bindings/host` value to `postgresql:27017`_
+  * _Change the `test-bindings/bindings/host` value to `postgresql`_
   * `SERVICE_BINDING_ROOT=/bindings make start_container`
 * Stop the container (will also remove the container)
   * `make stop_container`

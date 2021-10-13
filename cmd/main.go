@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/sgahlot/go-postgres-service-quickstart/pkg/common"
 	"github.com/sgahlot/go-postgres-service-quickstart/pkg/db"
 	"log"
 
@@ -16,17 +17,17 @@ const (
 	SERVER_PORT = ":8080"
 )
 
-func makeRoute(service db.Service) http.Handler {
-	ctx := db.GetContext()
+func makeRoute(service common.Service) http.Handler {
+	ctx := common.GetContext()
 
-	endPoints := db.EndPoints{
-		InsertFruit: db.InsertFruit(service),
-		DeleteFruit: db.DeleteFruits(service),
-		GetFruit:    db.GetFruit(service),
-		GetFruits:   db.GetFruits(service),
+	endPoints := common.EndPoints{
+		InsertFruit: common.InsertFruit(service),
+		DeleteFruit: common.DeleteFruits(service),
+		GetFruit:    common.GetFruit(service),
+		GetFruits:   common.GetFruits(service),
 	}
 
-	router := db.CreateHandlers(ctx, endPoints)
+	router := common.CreateHandlers(ctx, endPoints)
 
 	return router
 }
